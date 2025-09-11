@@ -1,6 +1,10 @@
 [package]
 name = "modelscope"
-version = "0.1.0"
+version = "0.0.0"
 edition = "2024"
+description = "modelscope sdk"
+license = "Apache-2.0"
+repository = "https://github.com/xgpxg/modelscope"
+documentation = "https://docs.rs/modelscope"
 
 [dependencies]
