@@ -15,3 +15,4 @@ reqwest = { version = "0.12.23", features = ["json", "stream"] }
 clap = { version = "4.5.47", features = ["derive"] }
 indicatif = "0.18.0"
 futures-util = "0.3.31"
+openssl = { version = "0.10.73", features = ["vendored"] }
