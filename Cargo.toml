@@ -1,6 +1,6 @@
 [package]
 name = "modelscope"
-version = "0.0.0"
+version = "0.1.0"
 edition = "2024"
 description = "modelscope sdk"
 license = "Apache-2.0"
@@ -8,3 +8,10 @@ repository = "https://github.com/xgpxg/modelscope"
 documentation = "https://docs.rs/modelscope"
 
 [dependencies]
+serde = "1.0"
+anyhow = "1.0"
+tokio = { version = "1.47", features = ["rt", "rt-multi-thread", "macros"] }
+reqwest = { version = "0.12.23", features = ["json", "stream"] }
+clap = { version = "4.5.47", features = ["derive"] }
+indicatif = "0.18.0"
+futures-util = "0.3.31"
