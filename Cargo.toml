@@ -2,7 +2,7 @@
 name = "modelscope"
 version = "0.1.0"
 edition = "2024"
-description = "modelscope sdk"
+description = "A command-line interface tool for downloading models from Modelscope, which can also be used as a library"
 license = "Apache-2.0"
 repository = "https://github.com/xgpxg/modelscope"
 documentation = "https://docs.rs/modelscope"
