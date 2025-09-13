@@ -44,13 +44,16 @@ struct RepoFile {
     r#type: String,
 }
 
-const BAR_STYLE: &str = "{msg:<30} {bar} {decimal_bytes:<10} / {decimal_total_bytes:<10} {decimal_bytes_per_sec:<10} {percent:<3}% {eta_precise}";
+const BAR_STYLE: &str = "{msg:<30} {bar} {decimal_bytes:<10} / {decimal_total_bytes:<10} {decimal_bytes_per_sec:<12} {percent:<3}%  {eta_precise}";
 
 impl ModelScope {
     pub async fn download(model_id: &str, save_dir: impl Into<PathBuf>) -> anyhow::Result<()> {
-        let save_dir = save_dir.into();
+        let save_dir = save_dir.into().join(model_id);
 
-        println!("downloading model {} to: {}", model_id, save_dir.display());
+        println!();
+        println!("Downloading model {} to: {}", model_id, save_dir.display());
+        println!();
+
         fs::create_dir_all(&save_dir)?;
 
         let files_url = FILES_URL.replace("<model_id>", model_id);
