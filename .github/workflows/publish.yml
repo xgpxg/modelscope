@@ -26,8 +26,9 @@ jobs:
       - uses: actions/checkout@v4
 
       # 安装 musl 工具
-#      - name: Install musl tools
-#        run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - name: Install musl tools
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
 
       # 添加目标平台
       - name: Add target
@@ -40,7 +41,7 @@ jobs:
       # 压缩二进制文件
       - name: Compress binary
         if: matrix.os ==  'windows-latest'
-        run: |       
+        run: |
           cd target/${{ matrix.target }}/release
           tar -czf ${{ matrix.asset_name }} modelscope.exe
         shell: bash
@@ -59,7 +60,7 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
-          files: |           
+          files: |
             modelscope-linux-amd64.tar.gz/modelscope-linux-amd64.tar.gz
             modelscope-windows-amd64.zip/modelscope-windows-amd64.tar.gz
             modelscope-macos-arm64.tar.gz/modelscope-macos-arm64.tar.gz
