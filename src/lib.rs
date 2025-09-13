@@ -40,6 +40,8 @@ struct RepoFile {
     #[serde(rename = "Sha256")]
     #[allow(unused)]
     sha256: String,
+    #[serde(rename = "Type")]
+    r#type: String,
 }
 
 const BAR_STYLE: &str = "{msg:<30} {bar} {decimal_bytes:<10} / {decimal_total_bytes:<10} {decimal_bytes_per_sec:<10} {percent:<3}% {eta_precise}";
@@ -66,7 +68,7 @@ impl ModelScope {
         let mut tasks = Vec::new();
         let bars = MultiProgress::new();
 
-        for repo_file in repo_files.into_iter() {
+        for repo_file in repo_files.into_iter().filter(|f| f.r#type == "blob") {
             let model_id = model_id.to_string();
             let client = client.clone();
             let save_dir = save_dir.clone();
@@ -187,4 +189,10 @@ impl ModelScope {
 
         Ok(())
     }
+}
+
+#[test]
+fn test () {
+    let p = "a/b/pp.png";
+    println!("{}", PathBuf::from("c").join(p).parent().unwrap().display());
 }
