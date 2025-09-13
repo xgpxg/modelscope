@@ -190,9 +190,3 @@ impl ModelScope {
         Ok(())
     }
 }
-
-#[test]
-fn test () {
-    let p = "a/b/pp.png";
-    println!("{}", PathBuf::from("c").join(p).parent().unwrap().display());
-}
