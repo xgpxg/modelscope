@@ -1,4 +1,3 @@
-
 # modelscope
 
 [中文](README_zh.md) | [English](README.md)
@@ -6,36 +5,35 @@
 ![Release](https://github.com/xgpxg/modelscope/actions/workflows/publish.yml/badge.svg)
 ![Crates.io](https://img.shields.io/crates/d/modelscope)
 
-A CLI tool for downloading models from Modelscope.
+用于从Modelscope下载模型的CLI工具。
 
-Features:
+功能：
 
-- ⬇️ Download models from Modelscope
-- 🫏 Show progress bar
-- ⚡ Multi-threaded download
-- 🔗 Resume interrupted downloads
+- ⬇️ 从Modelscope下载模型
+- 🫏 显示进度条
+- ⚡ 多线程下载
+- 🔗 断点续传
 
-Supported OS:
+支持的操作系统：
 
 - Windows
 - macOS
 - Linux
 
-## Installation
+## 安装
 
-You can install it in one of the following ways:
+可以通过以下方式之一安装：
 
-- Install using Cargo
+- 使用Cargo安装
 
 ```shell
 cargo install modelscope
 ```
 
-- Use precompiled package
-  Download the binary package for your operating system from
-  the [release page](https://github.com/xgpxg/modelscope/releases) and extract it.
+- 使用预编译的包
+  从 [发布页面](https://github.com/xgpxg/modelscope/releases) 下载适合你的操作系统的包，然后解压。
 
-## Usage
+## 使用方式：
 
 ```shell
 modelscope -m <MODEL_ID> -s <SAVE_DIR>
@@ -43,7 +41,7 @@ modelscope -m <MODEL_ID> -s <SAVE_DIR>
 
 ![img.png](screenshot.png)
 
-## Commands
+## 命令：
 
 ```shell
 Usage: modelscope [OPTIONS] --model-id <MODEL_ID>
@@ -55,15 +53,15 @@ Options:
   -V, --version              Print version
 ```
 
-## Library
+## 在lib中使用
 
-Add crate:
+添加依赖：
 
 ```shell
 cargo add modelscope
 ```
 
-Example:
+示例：
 
 ```rust
 use modelscope::ModelScope;
