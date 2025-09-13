@@ -3,10 +3,8 @@ use futures_util::StreamExt;
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use serde::Deserialize;
 use std::fs;
-use std::fs::File;
-use std::io::{BufWriter, Write};
+use std::io::{BufWriter, Seek, Write};
 use std::path::PathBuf;
-use std::process::exit;
 use std::sync::Arc;
 
 const FILES_URL: &str = "https://modelscope.cn/api/v1/models/<model_id>/repo/files?Recursive=true";
@@ -39,6 +37,9 @@ struct RepoFile {
     path: String,
     #[serde(rename = "Size")]
     size: u64,
+    #[serde(rename = "Sha256")]
+    #[allow(unused)]
+    sha256: String,
 }
 
 const BAR_STYLE: &str = "{msg:<30} {bar} {decimal_bytes:<10} / {decimal_total_bytes:<10} {decimal_bytes_per_sec:<10} {percent:<3}% {eta_precise}";
@@ -78,15 +79,15 @@ impl ModelScope {
             let task = tokio::spawn(async move {
                 let res = Self::download_file(client, model_id, repo_file, save_dir, bar).await;
                 if let Err(e) = res {
-                    println!("Error downloading file: {}", e);
-                    exit(1);
+                    bail!("Error downloading file: {}", e);
                 }
+                Ok::<(), anyhow::Error>(())
             });
 
             tasks.push(task);
         }
         for task in tasks {
-            task.await?;
+            task.await??;
         }
 
         Ok(())
@@ -102,19 +103,68 @@ impl ModelScope {
         let path = &repo_file.path;
         let name = &repo_file.name;
 
+        bar.set_message(name.clone());
+
         let file_path = save_dir.join(path);
         if let Some(parent) = file_path.parent() {
             fs::create_dir_all(parent)?;
         }
 
-        let mut file = BufWriter::new(File::create(&file_path)?);
+        let mut existing_size = 0;
+        let mut file_options = fs::OpenOptions::new();
+        file_options.write(true).create(true);
+
+        if file_path.exists() {
+            if let Ok(metadata) = fs::metadata(&file_path) {
+                existing_size = metadata.len();
+                file_options.append(true);
+            }
+        } else {
+            file_options.truncate(true);
+        }
+
+        let mut file = BufWriter::new(file_options.open(&file_path)?);
+
+        // Set progress bar initial position
+        bar.set_position(existing_size);
+        bar.set_length(repo_file.size);
 
         let url = DOWNLOAD_URL
             .replace("<model_id>", &model_id)
             .replace("<path>", path);
 
-        let response = client.get(url).header(UA.0, UA.1).send().await?;
-        if !response.status().is_success() {
+        let mut rb = client.get(&url).header(UA.0, UA.1);
+
+        // Already downloaded, just return ok.
+        // If file size equal repo file size, maybe check sha256
+        // But I think the probability of files having the same number of bytes is relatively low, so I won't check here. 🙊
+        if existing_size == repo_file.size {
+            bar.finish();
+            return Ok(());
+        }
+
+        // Resume download
+        if existing_size < repo_file.size {
+            rb = rb.header("Range", format!("bytes={}-", existing_size));
+        }
+
+        let response = rb.send().await?;
+
+        let status = response.status();
+
+        // Server doesn't support resume download, re-downloading from beginning
+        // Or existing file size is larger than repo size, re-downloading from beginning
+        if status == reqwest::StatusCode::OK && existing_size > 0 || existing_size > repo_file.size
+        {
+            file.rewind()?;
+            file.get_ref().set_len(0)?;
+            bar.set_position(0);
+        }
+
+        // If status is not success or partial content, bail
+        if !response.status().is_success()
+            && response.status() != reqwest::StatusCode::PARTIAL_CONTENT
+        {
             bail!(
                 "Failed to download file {}: HTTP {}",
                 name,
@@ -123,15 +173,17 @@ impl ModelScope {
         }
 
         let mut stream = response.bytes_stream();
+
         while let Some(item) = stream.next().await {
             let chunk = item?;
             file.write_all(&chunk)?;
-
-            bar.set_message(name.clone());
             bar.inc(chunk.len() as u64);
         }
+
         file.flush()?;
+
         bar.finish();
+
         Ok(())
     }
 }
