@@ -61,8 +61,8 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
           files: |
-            modelscope-linux-amd64.tar.gz/modelscope-linux-amd64.tar.gz
-            modelscope-windows-amd64.zip/modelscope-windows-amd64.tar.gz
-            modelscope-macos-arm64.tar.gz/modelscope-macos-arm64.tar.gz
+            target/${{ matrix.target }}/release/modelscope-linux-amd64.tar.gz
+            target/${{ matrix.target }}/release/modelscope-windows-amd64.tar.gz
+            target/${{ matrix.target }}/release/modelscope-macos-arm64.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
