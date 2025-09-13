@@ -1,0 +1,67 @@
+name: Publish
+
+on:
+  push:
+    tags: [ "*" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            asset_name: modelscope-linux-amd64.tar.gz
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            asset_name: modelscope-windows-amd64.tar.gz
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            asset_name: modelscope-macos-arm64.tar.gz
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # 安装 musl 工具
+#      - name: Install musl tools
+#        run: sudo apt-get update && sudo apt-get install -y musl-tools
+
+      # 添加目标平台
+      - name: Add target
+        run: rustup target add ${{ matrix.target }}
+
+      # 构建后端服务
+      - name: Build
+        run: cargo build -r --bin modelscope --target ${{ matrix.target }}
+
+      # 压缩二进制文件
+      - name: Compress binary
+        if: matrix.os ==  'windows-latest'
+        run: |       
+          cd target/${{ matrix.target }}/release
+          tar -czf ${{ matrix.asset_name }} modelscope.exe
+        shell: bash
+
+      # 压缩二进制文件
+      - name: Compress binary
+        if: matrix.os !=  'windows-latest'
+        run: |
+          cd target/${{ matrix.target }}/release
+          tar -czf ${{ matrix.asset_name }} modelscope
+        shell: bash
+
+      # 创建 Release
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          files: |           
+            modelscope-linux-amd64.tar.gz/modelscope-linux-amd64.tar.gz
+            modelscope-windows-amd64.zip/modelscope-windows-amd64.tar.gz
+            modelscope-macos-arm64.tar.gz/modelscope-macos-arm64.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
