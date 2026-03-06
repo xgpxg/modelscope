@@ -1,5 +1,5 @@
 use clap::Parser;
-use modelscope::ModelScope;
+use modelscope::{DownloadOptions, ModelScope};
 use std::env;
 use std::path::PathBuf;
 
@@ -27,6 +27,9 @@ enum SubCommand {
         /// The path to save the model, will be created if not exists
         #[arg(short, long, default_value_os_t = Args::default_save_dir())]
         save_dir: PathBuf,
+        /// Specify files to download
+        #[arg(long, value_delimiter = ',')]
+        files: Option<Vec<String>>,
     },
     /// Login to modelscope use your token
     Login {
@@ -44,8 +47,13 @@ enum SubCommand {
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     match args.command {
-        SubCommand::Download { model_id, save_dir } => {
-            ModelScope::download(&model_id, &save_dir).await?;
+        SubCommand::Download {
+            model_id,
+            save_dir,
+            files,
+        } => {
+            ModelScope::download_with_options(&model_id, &save_dir, DownloadOptions { files })
+                .await?;
         }
         SubCommand::Login { token } => {
             ModelScope::login(&token).await?;

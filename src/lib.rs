@@ -53,6 +53,11 @@ struct RepoFile {
     r#type: String,
 }
 
+pub struct DownloadOptions {
+    /// Specify the files to download
+    pub files: Option<Vec<String>>,
+}
+
 const BAR_STYLE: &str = "{msg:<30} {bar} {decimal_bytes:<10} / {decimal_total_bytes:<10} {decimal_bytes_per_sec:<12} {percent:<3}%  {eta_precise}";
 
 impl ModelScope {
@@ -66,7 +71,17 @@ impl ModelScope {
         Ok(client.build()?)
     }
 
+    /// Download model
     pub async fn download(model_id: &str, save_dir: impl Into<PathBuf>) -> anyhow::Result<()> {
+        Self::download_with_options(model_id, save_dir, DownloadOptions { files: None }).await
+    }
+
+    /// Download the model with specified options
+    pub async fn download_with_options(
+        model_id: &str,
+        save_dir: impl Into<PathBuf>,
+        options: DownloadOptions,
+    ) -> anyhow::Result<()> {
         // Model root dir
         let save_dir = save_dir.into();
         fs::create_dir_all(&save_dir)?;
@@ -109,6 +124,11 @@ impl ModelScope {
         let bars = MultiProgress::new();
 
         for repo_file in repo_files.into_iter().filter(|f| f.r#type == "blob") {
+            if let Some(files) = &options.files
+                && !files.contains(&repo_file.path)
+            {
+                continue;
+            }
             let model_id = model_id.to_string();
             let client = client.clone();
             let save_dir = model_dir.clone();
