@@ -1,6 +1,6 @@
 [package]
 name = "modelscope"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2024"
 description = "A command-line interface tool for downloading models from Modelscope, which can also be used as a library"
 license = "Apache-2.0"
@@ -8,7 +8,7 @@ repository = "https://github.com/xgpxg/modelscope"
 documentation = "https://docs.rs/modelscope"
 
 [dependencies]
-serde = "1.0"
+serde = {version = "1.0", features = ["derive"]}
 serde_json = "1.0"
 anyhow = "1.0"
 tokio = { version = "1.47", features = ["rt", "rt-multi-thread", "macros"] }
